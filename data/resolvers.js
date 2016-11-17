@@ -1,27 +1,20 @@
-const resolveFunctions = {
+import * as Users from './connectors';
+
+
+const resolvers = {
   Query: {
-    posts() {
-      return posts;
-    },
+      users() {
+      console.log('Get Users');
+      return Users.getUsers();
+      },
   },
   Mutation: {
-    upvotePost(_, { postId }) {
-      const post = find(posts, { id: postId });
-      if (!post) {
-        throw new Error(`Couldn't find post with id ${postId}`);
-      }
-      post.votes += 1;
-      return post;
-    },
-  },
-  Author: {
-    posts(author) {
-      return filter(posts, { authorId: author.id });
-    },
-  },
-  Post: {
-    author(post) {
-      return find(authors, { id: post.authorId });
+    addUser: async (root, {firstName, lastName }, context) => {
+      console.log('adding User: ' + firstName + ' ' + lastName);
+      const newUser = await Users.addUser(firstName, lastName);
+      return newUser;
     },
   },
 };
+
+export default resolvers;

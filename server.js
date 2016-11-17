@@ -5,6 +5,7 @@ import express from 'express';
 
 import Schema from './data/schema';
 import Resolvers from './data/resolvers';
+import Connectors from './data/connectors'
 
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express';
 import { makeExecutableSchema, addMockFunctionsToSchema } from 'graphql-tools';
@@ -16,12 +17,9 @@ const graphQLServer = express();
 const executableSchema = makeExecutableSchema({
     typeDefs: Schema,
     resolvers: Resolvers,
+    connectors: Connectors
 });
 
-addMockFunctionsToSchema({
-    schema: executableSchema,
-    preserveResolvers: true,
-});
 
 graphQLServer.use('/graphql', bodyParser.json(), graphqlExpress({
     schema: executableSchema,
