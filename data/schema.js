@@ -16,9 +16,14 @@ type Mutation {
     lastName: String!
   ): User
 }
+type Subscription {
+ userAdded: User
+}
+
 schema {
   query: Query
   mutation: Mutation
+  subscription: Subscription
 }
 `;
 

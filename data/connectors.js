@@ -23,8 +23,6 @@ function getUsers() {
 }
 
 
-
-
 export {
     getUsers,
     addUser

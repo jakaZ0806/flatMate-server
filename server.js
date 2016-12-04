@@ -10,6 +10,12 @@ import Connectors from './data/connectors'
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express';
 import { makeExecutableSchema, addMockFunctionsToSchema } from 'graphql-tools';
 import bodyParser from 'body-parser';
+
+import { createServer } from 'http';
+import { SubscriptionServer  } from 'subscriptions-transport-ws';
+import { subscriptionManager } from './data/subscriptions';
+
+const WS_PORT = 8081;
 const GRAPHQL_PORT = 8080;
 
 const graphQLServer = express();
@@ -33,3 +39,15 @@ graphQLServer.use('/graphiql', graphiqlExpress({
 graphQLServer.listen(GRAPHQL_PORT, () => console.log(
     `GraphQL Server is now running on http://localhost:${GRAPHQL_PORT}/graphql`
 ));
+
+//Subscription WS Server
+const httpServer = createServer((request, response) => {
+    response.writeHead(404);
+    response.end();
+});
+
+httpServer.listen(WS_PORT, () => console.log(
+    `Websocket-Server is now running on http://localhost:${WS_PORT}`
+));
+
+new SubscriptionServer ({ subscriptionManager }, httpServer);
