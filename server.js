@@ -3,32 +3,29 @@
  */
 import express from 'express';
 
-import Schema from './data/schema';
-import Resolvers from './data/resolvers';
-import Connectors from './data/connectors'
-
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express';
-import { makeExecutableSchema, addMockFunctionsToSchema } from 'graphql-tools';
 import bodyParser from 'body-parser';
 
 import { createServer } from 'http';
 import { SubscriptionServer  } from 'subscriptions-transport-ws';
 import { subscriptionManager } from './data/subscriptions';
 
-const WS_PORT = 8081;
-const GRAPHQL_PORT = 8080;
+import schema from './data/schema';
+
+const WS_PORT = 8080;
+const GRAPHQL_PORT = 3050;
 
 const graphQLServer = express();
 
+/*
 const executableSchema = makeExecutableSchema({
-    typeDefs: Schema,
-    resolvers: Resolvers,
-    connectors: Connectors
+    typeDefs: typedefs,
+    resolvers: resolvers,
 });
-
+*/
 
 graphQLServer.use('/graphql', bodyParser.json(), graphqlExpress({
-    schema: executableSchema,
+    schema,
     context: {}, //at least(!) an empty object
 }));
 

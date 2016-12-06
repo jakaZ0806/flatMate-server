@@ -1,6 +1,10 @@
 /**
  * Created by Lukas on 14-Nov-16.
  */
+import * as Users from './connectors';
+import { pubsub } from './subscriptions';
+import { makeExecutableSchema } from 'graphql-tools';
+
 const typedefs = `
 type User {
   id: Int!
@@ -17,7 +21,7 @@ type Mutation {
   ): User
 }
 type Subscription {
- userAdded: User
+ userAdded(firstName: String!): User
 }
 
 schema {
@@ -27,4 +31,32 @@ schema {
 }
 `;
 
-export default [typedefs];
+const resolvers = {
+    Query: {
+        users() {
+            console.log('Get Users');
+            return Users.getUsers();
+        },
+    },
+    Mutation: {
+        addUser: async (root, {firstName, lastName }, context) => {
+            console.log('Adding User: ' + firstName + ' ' + lastName);
+            const newUser = await Users.addUser(firstName, lastName);
+            pubsub.publish('userAdded', newUser);
+            return newUser;
+        },
+    },
+    Subscription: {
+        userAdded(user) {
+            console.log('New Subscription!');
+            return user;
+        }
+    }
+};
+
+const executableSchema = makeExecutableSchema({
+    typeDefs: typedefs,
+    resolvers,
+});
+
+export default executableSchema;
