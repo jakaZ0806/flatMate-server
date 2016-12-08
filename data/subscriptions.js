@@ -8,12 +8,8 @@ const pubsub = new PubSub();
 const subscriptionManager = new SubscriptionManager({
     schema,
     pubsub,
-    setupFunctions: {
-        userAdded: (options, args) => ({
-            userAdded: user =>
-            user.firstName === args.firstName,
-        }),
-    },
+
+
 });
 
 export { subscriptionManager, pubsub };

@@ -9,6 +9,7 @@ import bodyParser from 'body-parser';
 import { createServer } from 'http';
 import { SubscriptionServer  } from 'subscriptions-transport-ws';
 import { subscriptionManager } from './data/subscriptions';
+import { toggleTimer } from "./data/timeConnector";
 
 import schema from './data/schema';
 
@@ -48,3 +49,5 @@ httpServer.listen(WS_PORT, () => console.log(
 ));
 
 new SubscriptionServer ({ subscriptionManager }, httpServer);
+
+toggleTimer();

@@ -21,9 +21,7 @@ function getUsers() {
     return users;
 }
 
-
 export {
     getUsers,
-    addUser
-
+    addUser,
 }

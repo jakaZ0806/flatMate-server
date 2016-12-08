@@ -2,6 +2,7 @@
  * Created by Lukas on 14-Nov-16.
  */
 import * as Users from './connectors';
+import { getTimeNow } from './timeConnector'
 import { pubsub } from './subscriptions';
 import { makeExecutableSchema } from 'graphql-tools';
 
@@ -11,8 +12,13 @@ type User {
   firstName: String
   lastName: String
 }
+type Time {
+    time: Float!
+}
+
 type Query {
   users: [User]
+  getTime: Time
 }
 type Mutation {
   addUser(
@@ -22,7 +28,9 @@ type Mutation {
 }
 type Subscription {
  userAdded(firstName: String!): User
+ timeSub: Time
 }
+
 
 schema {
   query: Query
@@ -37,6 +45,10 @@ const resolvers = {
             console.log('Get Users');
             return Users.getUsers();
         },
+        getTime() {
+            var time = getTimeNow();
+            return time;
+        }
     },
     Mutation: {
         addUser: async (root, {firstName, lastName }, context) => {
@@ -48,8 +60,12 @@ const resolvers = {
     },
     Subscription: {
         userAdded(user) {
-            console.log('New Subscription!');
+            console.log('Sub-Event: User!');
             return user;
+        },
+        timeSub() {
+            console.log('Sub-Event: Time!');
+            return {time:getTimeNow()};
         }
     }
 };
