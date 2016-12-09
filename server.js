@@ -3,26 +3,30 @@
  */
 import express from 'express';
 
-import Schema from './data/schema';
-import Resolvers from './data/resolvers';
-import Connectors from './data/connectors'
-
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express';
-import { makeExecutableSchema, addMockFunctionsToSchema } from 'graphql-tools';
 import bodyParser from 'body-parser';
-const GRAPHQL_PORT = 8080;
+
+import { createServer } from 'http';
+import { SubscriptionServer  } from 'subscriptions-transport-ws';
+import { subscriptionManager } from './data/subscriptions';
+import { toggleTimer } from "./data/timeConnector";
+
+import schema from './data/schema';
+
+const WS_PORT = 8080;
+const GRAPHQL_PORT = 3050;
 
 const graphQLServer = express();
 
+/*
 const executableSchema = makeExecutableSchema({
-    typeDefs: Schema,
-    resolvers: Resolvers,
-    connectors: Connectors
+    typeDefs: typedefs,
+    resolvers: resolvers,
 });
-
+*/
 
 graphQLServer.use('/graphql', bodyParser.json(), graphqlExpress({
-    schema: executableSchema,
+    schema,
     context: {}, //at least(!) an empty object
 }));
 
@@ -33,3 +37,17 @@ graphQLServer.use('/graphiql', graphiqlExpress({
 graphQLServer.listen(GRAPHQL_PORT, () => console.log(
     `GraphQL Server is now running on http://localhost:${GRAPHQL_PORT}/graphql`
 ));
+
+//Subscription WS Server
+const httpServer = createServer((request, response) => {
+    response.writeHead(404);
+    response.end();
+});
+
+httpServer.listen(WS_PORT, () => console.log(
+    `Websocket-Server is now running on http://localhost:${WS_PORT}`
+));
+
+new SubscriptionServer ({ subscriptionManager }, httpServer);
+
+toggleTimer();
