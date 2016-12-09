@@ -27,7 +27,7 @@ type Mutation {
   ): User
 }
 type Subscription {
- userAdded(firstName: String!): User
+ userAdded: User
  timeSub: Time
 }
 
@@ -46,8 +46,7 @@ const resolvers = {
             return Users.getUsers();
         },
         getTime() {
-            var time = getTimeNow();
-            return time;
+            return Date.now();
         }
     },
     Mutation: {
@@ -63,9 +62,9 @@ const resolvers = {
             console.log('Sub-Event: User!');
             return user;
         },
-        timeSub() {
+        timeSub(time) {
             console.log('Sub-Event: Time!');
-            return {time:getTime()};
+            return {time:time};
         }
     }
 };
