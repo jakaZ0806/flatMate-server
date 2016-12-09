@@ -2,7 +2,7 @@
  * Created by Lukas on 14-Nov-16.
  */
 import * as Users from './connectors';
-import { getTimeNow } from './timeConnector'
+import { getTime } from './timeConnector'
 import { pubsub } from './subscriptions';
 import { makeExecutableSchema } from 'graphql-tools';
 
@@ -65,7 +65,7 @@ const resolvers = {
         },
         timeSub() {
             console.log('Sub-Event: Time!');
-            return {time:getTimeNow()};
+            return {time:getTime()};
         }
     }
 };
