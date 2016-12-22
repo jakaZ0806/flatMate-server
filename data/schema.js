@@ -59,11 +59,9 @@ const resolvers = {
     },
     Subscription: {
         userAdded(user) {
-            console.log('Sub-Event: User!');
             return user;
         },
         timeSub(time) {
-            console.log('Sub-Event: Time!');
             return {time:time};
         }
     }

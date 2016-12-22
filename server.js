@@ -9,6 +9,10 @@ import bodyParser from 'body-parser';
 import { createServer } from 'http';
 import { SubscriptionServer  } from 'subscriptions-transport-ws';
 import { subscriptionManager } from './data/subscriptions';
+import apiRoutes from './data/authentication';
+
+import mongoose from 'mongoose';
+
 import { toggleTimer } from "./data/timeConnector";
 
 import schema from './data/schema';
@@ -16,23 +20,32 @@ import schema from './data/schema';
 const WS_PORT = 8080;
 const GRAPHQL_PORT = 3050;
 
-const graphQLServer = express();
+const allowCrossDomain = function(req, res, next) {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
 
-/*
-const executableSchema = makeExecutableSchema({
-    typeDefs: typedefs,
-    resolvers: resolvers,
-});
-*/
+    next();
+};
+
+const graphQLServer = express();
+mongoose.connect('mongodb://localhost:27017/testDB');
+
+graphQLServer.use(bodyParser.urlencoded({ extended: true }));
+graphQLServer.use(allowCrossDomain);
+
 
 graphQLServer.use('/graphql', bodyParser.json(), graphqlExpress({
     schema,
     context: {}, //at least(!) an empty object
 }));
 
+
 graphQLServer.use('/graphiql', graphiqlExpress({
     endpointURL: '/graphql',
 }));
+
+graphQLServer.use('/auth', apiRoutes);
 
 graphQLServer.listen(GRAPHQL_PORT, () => console.log(
     `GraphQL Server is now running on http://localhost:${GRAPHQL_PORT}/graphql`
