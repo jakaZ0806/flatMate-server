@@ -38,8 +38,8 @@ graphQLServer.use(allowCrossDomain);
 graphQLServer.use('/auth', apiRoutes);
 
 
+//Protect following Routes with JWT
 graphQLServer.use(protectRoutes);
-
 
 graphQLServer.use('/graphql', bodyParser.json(), graphqlExpress({
     schema,

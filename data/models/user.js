@@ -4,7 +4,10 @@
 import mongoose from 'mongoose';
 
 export default mongoose.model('User', new mongoose.Schema({
-    name: String,
+    username: String,
     password: String,
-    admin: Boolean
+    admin: Boolean,
+    firstName: String,
+    lastName: String,
+    id: Number
 }));

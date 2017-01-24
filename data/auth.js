@@ -4,14 +4,6 @@
 import express from 'express';
 import User from './models/user'
 import jwt from 'jsonwebtoken';
-import schema from './schema';
-import { graphqlExpress, graphiqlExpress } from 'graphql-server-express';
-import bodyParser from 'body-parser';
-
-
-
-
-
 
 const apiRoutes = express.Router();
 
@@ -54,7 +46,7 @@ apiRoutes.post('/login', function(req, res) {
     console.log(req.body.username);
     // find the user
     User.findOne({
-        name: req.body.username
+        username: req.body.username
     }, function(err, user) {
 
         if (err) throw err;
@@ -90,10 +82,12 @@ apiRoutes.post('/login', function(req, res) {
 
 //Register a new user
 apiRoutes.post('/register', function(req, res) {
-    console.log(req.body.name);
+    console.log(req.body.username);
     var newUser = new User({
-        name: req.body.name,
+        username: req.body.username,
         password: req.body.password,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
         admin: false
     });
 
@@ -113,9 +107,13 @@ apiRoutes.get('/setup', function(req, res) {
 
     // create a sample user
     var nick = new User({
-        name: 'Nick Halden',
+        username: 'nick.halden',
         password: 'pass',
-        admin: true
+        admin: true,
+        firstName: 'Nick',
+        lastName: 'Halden',
+        id: 100
+
     });
 
     // save the sample user

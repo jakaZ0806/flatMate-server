@@ -5,12 +5,15 @@ import * as Users from './connectors';
 import { getTime } from './timeConnector'
 import { pubsub } from './subscriptions';
 import { makeExecutableSchema } from 'graphql-tools';
+import User from './models/user'
 
 const typedefs = `
 type User {
   id: Int!
   firstName: String
   lastName: String
+  username: String
+  password: String
 }
 type Time {
     time: Float!
@@ -24,6 +27,8 @@ type Mutation {
   addUser(
     firstName: String!
     lastName: String!
+    username: String!
+    password: String!
   ): User
 }
 type Subscription {
@@ -43,16 +48,20 @@ const resolvers = {
     Query: {
         users() {
             console.log('Get Users');
-            return Users.getUsers();
+            var users = User.find({}, function(err, users) {
+                return users;
+            });
+            return users;
         },
         getTime() {
             return Date.now();
         }
     },
     Mutation: {
-        addUser: async (root, {firstName, lastName }, context) => {
+        addUser: async (root, {firstName, lastName, username, password }, context) => {
             console.log('Adding User: ' + firstName + ' ' + lastName);
-            const newUser = await Users.addUser(firstName, lastName);
+            const newUser = await Users.addUser(firstName, lastName, username, password);
+            //Publish Event for Subscriptions
             pubsub.publish('userAdded', newUser);
             return newUser;
         },
