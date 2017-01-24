@@ -9,7 +9,8 @@ import bodyParser from 'body-parser';
 import { createServer } from 'http';
 import { SubscriptionServer  } from 'subscriptions-transport-ws';
 import { subscriptionManager } from './data/subscriptions';
-import apiRoutes from './data/authentication';
+import { apiRoutes } from './data/auth';
+import { protectRoutes } from './data/auth'
 
 import mongoose from 'mongoose';
 
@@ -34,6 +35,11 @@ mongoose.connect('mongodb://localhost:27017/testDB');
 graphQLServer.use(bodyParser.urlencoded({ extended: true }));
 graphQLServer.use(allowCrossDomain);
 
+graphQLServer.use('/auth', apiRoutes);
+
+
+graphQLServer.use(protectRoutes);
+
 
 graphQLServer.use('/graphql', bodyParser.json(), graphqlExpress({
     schema,
@@ -45,7 +51,7 @@ graphQLServer.use('/graphiql', graphiqlExpress({
     endpointURL: '/graphql',
 }));
 
-graphQLServer.use('/auth', apiRoutes);
+
 
 graphQLServer.listen(GRAPHQL_PORT, () => console.log(
     `GraphQL Server is now running on http://localhost:${GRAPHQL_PORT}/graphql`

@@ -4,9 +4,48 @@
 import express from 'express';
 import User from './models/user'
 import jwt from 'jsonwebtoken';
+import schema from './schema';
+import { graphqlExpress, graphiqlExpress } from 'graphql-server-express';
+import bodyParser from 'body-parser';
+
+
+
+
 
 
 const apiRoutes = express.Router();
+
+
+function protectRoutes(req, res, next) {
+
+    // check header or url parameters or post parameters for token
+    var token = req.body.token || req.query.token || req.headers['x-access-token'];
+
+    // decode token
+    if (token) {
+
+        // verifies secret and checks exp
+        jwt.verify(token, 'psssst-secret', function(err, decoded) {
+            if (err) {
+                return res.json({ success: false, message: 'Failed to authenticate token.' });
+            } else {
+                // if everything is good, save to request for use in other routes
+                req.decoded = decoded;
+                next();
+            }
+        });
+
+    } else {
+
+        // if there is no token
+        // return an error
+        return res.status(403).send({
+            success: false,
+            message: 'No token provided.'
+        });
+
+    }
+};
 
 //------------------UNPROTECTED ROUTES-----------------------------
 
@@ -88,40 +127,9 @@ apiRoutes.get('/setup', function(req, res) {
     });
 });
 
-export default apiRoutes;
-
 
 //Middleware: Protect other Routes
-apiRoutes.use(function(req, res, next) {
-
-    // check header or url parameters or post parameters for token
-    var token = req.body.token || req.query.token || req.headers['x-access-token'];
-
-    // decode token
-    if (token) {
-
-        // verifies secret and checks exp
-        jwt.verify(token, 'psssst-secret', function(err, decoded) {
-            if (err) {
-                return res.json({ success: false, message: 'Failed to authenticate token.' });
-            } else {
-                // if everything is good, save to request for use in other routes
-                req.decoded = decoded;
-                next();
-            }
-        });
-
-    } else {
-
-        // if there is no token
-        // return an error
-        return res.status(403).send({
-            success: false,
-            message: 'No token provided.'
-        });
-
-    }
-});
+apiRoutes.use(protectRoutes);
 
 //-----------PROTECTED ROUTES------------------
 
@@ -133,3 +141,7 @@ apiRoutes.get('/users', function(req, res) {
         res.json(users);
     });
 });
+
+
+export { apiRoutes, protectRoutes };
+
