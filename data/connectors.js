@@ -29,7 +29,11 @@ function getUsers() {
     return users;
 }
 
+function findOne(username) {
+    return User.findOne({'username' : username});
+}
 export {
     getUsers,
     addUser,
+    findOne
 }

@@ -26,4 +26,8 @@ function getTime() {
     return date;
 }
 
-export { toggleTimer, timerEvent, getTime };
+function getTimerStatus() {
+    return timerActive;
+}
+
+export { toggleTimer, getTime, getTimerStatus };

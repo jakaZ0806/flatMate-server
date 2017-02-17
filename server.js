@@ -10,7 +10,7 @@ import { createServer } from 'http';
 import { SubscriptionServer  } from 'subscriptions-transport-ws';
 import { subscriptionManager } from './data/subscriptions';
 import { apiRoutes } from './data/auth';
-import { protectRoutes } from './data/auth'
+import expressjwt from 'express-jwt';
 
 import mongoose from 'mongoose';
 
@@ -35,24 +35,29 @@ mongoose.connect('mongodb://localhost:27017/testDB');
 graphQLServer.use(bodyParser.urlencoded({ extended: true }));
 graphQLServer.use(allowCrossDomain);
 
+
+//Routes for Authorisation: Register User, Login
 graphQLServer.use('/auth', apiRoutes);
 
-
-//Protect following Routes with JWT
-graphQLServer.use(protectRoutes);
-
-graphQLServer.use('/graphql', bodyParser.json(), graphqlExpress({
-    schema,
-    context: {}, //at least(!) an empty object
+//Use JWT for Authentication
+graphQLServer.use(expressjwt({
+    secret: 'psssst-secret',
+    credentialsRequired: false
 }));
 
+graphQLServer.use('/graphql', bodyParser.json(), graphqlExpress((req) => ({
+    schema,
+    rootValue: {user: req.user,
+                test: 'test'},
+    context: {}
+})));
 
 graphQLServer.use('/graphiql', graphiqlExpress({
     endpointURL: '/graphql',
 }));
 
 
-
+//START GraphQL Server
 graphQLServer.listen(GRAPHQL_PORT, () => console.log(
     `GraphQL Server is now running on http://localhost:${GRAPHQL_PORT}/graphql`
 ));
@@ -69,4 +74,5 @@ httpServer.listen(WS_PORT, () => console.log(
 
 new SubscriptionServer ({ subscriptionManager }, httpServer);
 
+//Start the Timer for Subscription Time-Messages
 toggleTimer();
