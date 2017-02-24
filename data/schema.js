@@ -7,6 +7,7 @@ import { getTimerStatus } from './timeConnector'
 import { pubsub } from './subscriptions';
 import { makeExecutableSchema } from 'graphql-tools';
 import User from './models/user'
+import jwt from 'jsonwebtoken';
 
 //Error Object to prettify Error Messages on Client
 const errorObj = obj => {
@@ -33,11 +34,17 @@ type Time {
     time: Float!
 }
 
+type authResponse {
+    success: Boolean
+    error: String
+    token: String
+    }
 type Query {
   users: [User]
   getTime: Time
   user(username: String!): User
   password(username: String!): String
+  getJWT(username: String!, password: String!): authResponse
 }
 type Mutation {
   addUser(
@@ -97,6 +104,53 @@ const resolvers = {
             else {
                 return 'Not Authorized! Only visible for admins or the user himself.';
             }
+        },
+        getJWT: async (root, {username, password}) => {
+            console.log(username + ' ' + password);
+            var response = {};
+            // find the user
+           await User.findOne({
+                username: username
+            }, function(err, user) {
+
+                if (err) throw err;
+
+                if (!user) {
+                    return {
+                        success: false,
+                        error: 'User not found!',
+                        token: null
+                    };
+                } else if (user) {
+                    console.log('user found');
+                    // check if password matches
+                    if (user.password != password) {
+                        return {
+                            success: false,
+                            error: 'Wrong Password!',
+                            token: null
+                        }
+                    } else {
+
+                        // if user is found and password is right
+                        // create a token
+                        var token = jwt.sign(user.toObject(), 'psssst-secret', {
+                            expiresIn: 1440 // expires in 24 hours
+                        });
+
+                        // return the information including token as JSON
+                        response =  {
+                            success: true,
+                            error: '',
+                            token: token
+                        }
+
+                    }
+
+                }
+
+            });
+            return response;
         }
     },
     Mutation: {
