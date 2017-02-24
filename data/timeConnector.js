@@ -17,7 +17,6 @@ function toggleTimer() {
 function timerEvent() {
     date = Date.now();
     pubsub.publish('timeSub', date);
-    console.log('New Date: ' + date);
     if (timerActive) {
         setTimeout(timerEvent, 3000);
     }
@@ -27,4 +26,8 @@ function getTime() {
     return date;
 }
 
-export { toggleTimer, timerEvent, getTime };
+function getTimerStatus() {
+    return timerActive;
+}
+
+export { toggleTimer, getTime, getTimerStatus };
