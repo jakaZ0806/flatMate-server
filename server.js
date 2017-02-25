@@ -30,6 +30,7 @@ const allowCrossDomain = function(req, res, next) {
 };
 
 const graphQLServer = express();
+mongoose.Promise = require('bluebird');
 mongoose.connect('mongodb://localhost:27017/testDB');
 
 graphQLServer.use(bodyParser.urlencoded({ extended: true }));
