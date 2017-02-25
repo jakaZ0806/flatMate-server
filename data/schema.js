@@ -171,10 +171,8 @@ const resolvers = {
         },
         toggleTimer: async (root) => {
             checkUserLogin(root.user);
-            if (root.user.admin) {
                 toggleTimer();
                 return getTimerStatus();
-            }
         }
     },
     Subscription: {

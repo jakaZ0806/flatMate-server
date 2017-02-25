@@ -30,6 +30,7 @@ const allowCrossDomain = function(req, res, next) {
 };
 
 const graphQLServer = express();
+mongoose.Promise = require('bluebird');
 mongoose.connect('mongodb://localhost:27017/testDB');
 
 graphQLServer.use(bodyParser.urlencoded({ extended: true }));
@@ -72,7 +73,10 @@ httpServer.listen(WS_PORT, () => console.log(
     `Websocket-Server is now running on http://localhost:${WS_PORT}`
 ));
 
-new SubscriptionServer ({ subscriptionManager }, httpServer);
+new SubscriptionServer ({
+    onConnect: async (connectionParams) => {
+        // Implement if you need to handle and manage connection
+    },subscriptionManager: subscriptionManager }, {server: httpServer, path: '/' });
 
 //Start the Timer for Subscription Time-Messages
 toggleTimer();
