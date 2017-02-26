@@ -79,17 +79,16 @@ const resolvers = {
         users: async (root) => {
             console.log('Get Users');
            checkUserLogin(root.user);
-            var users = User.find({}, function (err, users) {
+            return User.find({}, function (err, users) {
                 return users;
             });
 
-            return users;
         },
         getTime() {
             return Date.now();
         },
         user: async (root, {username, id}) => {
-            //checkUserLogin(root.user);
+            checkUserLogin(root.user);
             if (id) {
                 return await Users.findById(id);
             }
@@ -113,6 +112,7 @@ const resolvers = {
         },
         getJWT: async (root, {username, password}) => {
             console.log(username + ' ' + password);
+            //create response object
             var response = {};
             // find the user
            await User.findOne({
@@ -181,9 +181,16 @@ const resolvers = {
                 return getTimerStatus();
         },
         deleteUser: async (root, {username}) => {
+            checkUserLogin(root.user);
+            if (root.user.admin) {
             const user = await Users.deleteUser(username, root.user);
             pubsub.publish('userChanged', user);
             return user;
+            }
+            else {
+                console.log('Access Denied');
+                throw errorObj({_error: 'Unauthorized. Admin Privileges needed.'});
+            }
         }
     },
     Subscription: {
