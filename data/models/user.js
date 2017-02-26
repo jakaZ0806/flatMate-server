@@ -3,11 +3,13 @@
  */
 import mongoose from 'mongoose';
 
-export default mongoose.model('User', new mongoose.Schema({
-    username: String,
+const userSchema = mongoose.Schema({
+    username: {type: String, unique: true},
     password: String,
     admin: Boolean,
     firstName: String,
     lastName: String,
-    id: Number
-}));
+    friends: [{ type : mongoose.Schema.Types.ObjectId, ref: 'User' }],
+});
+
+export default mongoose.model('User', userSchema);

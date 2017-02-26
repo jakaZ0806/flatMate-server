@@ -3,7 +3,17 @@
  */
 
 import User from './models/user'
-var id = 1;
+
+const checkUserLogin = function(user) {
+    if (!user) {
+        throw errorObj({_error: 'Unauthorized.'});
+    }
+};
+
+//Error Object to prettify Error Messages on Client
+const errorObj = obj => {
+    return new Error(JSON.stringify(obj));
+};
 
 function addUser(firstName, lastName, username, password) {
     return new Promise(resolve => {
@@ -13,10 +23,8 @@ function addUser(firstName, lastName, username, password) {
             password: password,
             username: username,
             admin: false,
-            id: id
 
         });
-        id++;
 
         // save the sample user
         newUser.save(function (err) {
@@ -32,8 +40,38 @@ function getUsers() {
 function findOne(username) {
     return User.findOne({'username' : username});
 }
+
+function findById(id) {
+    return User.findOne({'_id': id});
+}
+
+function getUsersById(ids) {
+   return User.find()
+        .where('_id')
+        .in(ids)
+        .exec(function (err, records) {
+            console.log(records);
+            return records;
+        });
+}
+
+function deleteUser(username, currentUser) {
+    checkUserLogin(currentUser);
+    if (currentUser.admin) {
+        return User.findOneAndRemove({'username': username});
+
+    }
+    else {
+        throw errorObj({_error: 'Unauthorized. Admin Privileges needed.'});
+
+    }
+}
+
 export {
     getUsers,
     addUser,
-    findOne
+    findOne,
+    deleteUser,
+    findById,
+    getUsersById
 }

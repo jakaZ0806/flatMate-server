@@ -23,12 +23,13 @@ const checkUserLogin = function(user) {
 
 const typedefs = `
 type User {
-  id: Int!
+  id: String!
   firstName: String
   lastName: String
   username: String
   password: String
   admin: Boolean
+  friends: [User]
 }
 type Time {
     time: Float!
@@ -42,7 +43,7 @@ type authResponse {
 type Query {
   users: [User]
   getTime: Time
-  user(username: String!): User
+  user(username: String, id: String): User
   password(username: String!): String
   getJWT(username: String!, password: String!): authResponse
 }
@@ -54,9 +55,10 @@ type Mutation {
     password: String!
   ): User
   toggleTimer: Boolean
+  deleteUser(username: String!): User
 }
 type Subscription {
- userAdded: User
+ userChanged: User
  timeSub: Time
 }
 
@@ -86,10 +88,14 @@ const resolvers = {
         getTime() {
             return Date.now();
         },
-        user: async (root, {username}) => {
-            checkUserLogin(root.user);
-            console.log('Getting User' + username);
-            return await Users.findOne(username);
+        user: async (root, {username, id}) => {
+            //checkUserLogin(root.user);
+            if (id) {
+                return await Users.findById(id);
+            }
+            if (username) {
+                return await Users.findOne(username);
+            }
         },
         password: async (root, {username}) => {
             if (root.user.admin || root.user.username === username) {
@@ -151,17 +157,17 @@ const resolvers = {
 
             });
             return response;
-        }
+        },
+
     },
     Mutation: {
         addUser: async (root, {firstName, lastName, username, password }) => {
             checkUserLogin(root.user);
-            //Check Permissions
             if (root.user.admin) {
                 console.log('Adding User: ' + firstName + ' ' + lastName);
                 const newUser = await Users.addUser(firstName, lastName, username, password);
                 //Publish Event for Subscriptions
-                pubsub.publish('userAdded', newUser);
+                pubsub.publish('userChanged', newUser);
                 return newUser;
             }
             else {
@@ -173,14 +179,26 @@ const resolvers = {
             checkUserLogin(root.user);
                 toggleTimer();
                 return getTimerStatus();
+        },
+        deleteUser: async (root, {username}) => {
+            const user = await Users.deleteUser(username, root.user);
+            pubsub.publish('userChanged', user);
+            return user;
         }
     },
     Subscription: {
-        userAdded(user) {
+        userChanged(user) {
             return user;
         },
         timeSub(time) {
             return {time:time};
+        }
+    },
+    User: {
+        friends: async (user) => {
+            const friends = await Users.getUsersById(user.friends);
+            console.log(friends);
+            return friends;
         }
     }
 };
