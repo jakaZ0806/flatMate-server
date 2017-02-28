@@ -9,7 +9,8 @@ const userSchema = mongoose.Schema({
     admin: Boolean,
     firstName: String,
     lastName: String,
-    friends: [{ type : mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    friends: [{ type : mongoose.Schema.Types.ObjectId, ref: 'User' , unique: true}],
+    statusMessage: String,
 });
 
 export default mongoose.model('User', userSchema);

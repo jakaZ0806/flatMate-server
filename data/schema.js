@@ -1,7 +1,7 @@
 /**
  * Created by Lukas on 14-Nov-16.
  */
-import * as Users from './connectors';
+import * as Users from './userConnector';
 import { toggleTimer } from './timeConnector'
 import { getTimerStatus } from './timeConnector'
 import { pubsub } from './subscriptions';
@@ -24,12 +24,13 @@ const checkUserLogin = function(user) {
 const typedefs = `
 type User {
   id: String!
-  firstName: String
-  lastName: String
-  username: String
-  password: String
-  admin: Boolean
+  firstName: String!
+  lastName: String!
+  username: String!
+  password: String!
+  admin: Boolean!
   friends: [User]
+  statusMessage: String
 }
 type Time {
     time: Float!
@@ -53,9 +54,12 @@ type Mutation {
     lastName: String!
     username: String!
     password: String!
+    admin: Boolean!
   ): User
   toggleTimer: Boolean
   deleteUser(username: String!): User
+  changeStatusMessage(username: String!, message: String!): String
+  addAsFriend(username: String!): User
 }
 type Subscription {
  userChanged: User
@@ -77,7 +81,6 @@ schema {
 const resolvers = {
     Query: {
         users: async (root) => {
-            console.log('Get Users');
            checkUserLogin(root.user);
             return User.find({}, function (err, users) {
                 return users;
@@ -111,7 +114,8 @@ const resolvers = {
             }
         },
         getJWT: async (root, {username, password}) => {
-            console.log(username + ' ' + password);
+
+
             //create response object
             var response = {};
             // find the user
@@ -128,7 +132,6 @@ const resolvers = {
                         token: null
                     };
                 } else if (user) {
-                    console.log('user found');
                     // check if password matches
                     if (user.password != password) {
                         return {
@@ -161,36 +164,31 @@ const resolvers = {
 
     },
     Mutation: {
-        addUser: async (root, {firstName, lastName, username, password }) => {
-            checkUserLogin(root.user);
-            if (root.user.admin) {
-                console.log('Adding User: ' + firstName + ' ' + lastName);
-                const newUser = await Users.addUser(firstName, lastName, username, password);
+        addUser: async (root, {firstName, lastName, username, password, admin }) => {
+                const newUser = await Users.addUser(firstName, lastName, username, password, admin);
                 //Publish Event for Subscriptions
                 pubsub.publish('userChanged', newUser);
                 return newUser;
-            }
-            else {
-                console.log('Access Denied');
-                throw errorObj({_error: 'Unauthorized. Admin Privileges needed.'});
-            }
         },
         toggleTimer: async (root) => {
             checkUserLogin(root.user);
+            if (root.user.admin) {
                 toggleTimer();
                 return getTimerStatus();
+            } else {
+                throw errorObj({_error: 'Unauthorized. Admin Privileges needed.'});
+            }
         },
         deleteUser: async (root, {username}) => {
-            checkUserLogin(root.user);
-            if (root.user.admin) {
             const user = await Users.deleteUser(username, root.user);
             pubsub.publish('userChanged', user);
             return user;
-            }
-            else {
-                console.log('Access Denied');
-                throw errorObj({_error: 'Unauthorized. Admin Privileges needed.'});
-            }
+        },
+        changeStatusMessage: async (root, {username, message}) => {
+            return await Users.changeStatusMessage(username, message, root.user)
+        },
+        addAsFriend: async (root, {username}) => {
+            return await Users.addAsFriend(username, root.user)
         }
     },
     Subscription: {
@@ -204,7 +202,6 @@ const resolvers = {
     User: {
         friends: async (user) => {
             const friends = await Users.getUsersById(user.friends);
-            console.log(friends);
             return friends;
         }
     }

@@ -9,7 +9,6 @@ import bodyParser from 'body-parser';
 import { createServer } from 'http';
 import { SubscriptionServer  } from 'subscriptions-transport-ws';
 import { subscriptionManager } from './data/subscriptions';
-import { apiRoutes } from './data/auth';
 import expressjwt from 'express-jwt';
 
 import mongoose from 'mongoose';
@@ -35,10 +34,6 @@ mongoose.connect('mongodb://localhost:27017/testDB');
 
 graphQLServer.use(bodyParser.urlencoded({ extended: true }));
 graphQLServer.use(allowCrossDomain);
-
-
-//Routes for Authorisation: Register User, Login
-graphQLServer.use('/auth', apiRoutes);
 
 //Use JWT for Authentication
 graphQLServer.use(expressjwt({
